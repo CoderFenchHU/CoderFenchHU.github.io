@@ -1,0 +1,940 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="iOS,移动开发," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/FreeHand.ico?v=5.0.2" />
+
+
+
+
+
+
+<meta name="description" content="​    多线程（英语：multithreading），是指从软件或者硬件上实现多个线程并发执行的技术。具有多线程能力的计算机因有硬件支持而能够在同一时间执行多于一个线程，进而提升整体处理性能。具有这种能力的系统包括对称多处理机、多核心处理器以及芯片级多处理（Chip-level multithreading）或同时多线程（Simultaneous multithreading）处理器。 在一个程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多线程之GCD">
+<meta property="og:url" content="http://fench.cf/2016/10/17/多线程之GCD/index.html">
+<meta property="og:site_name" content="Fench’s Blog">
+<meta property="og:description" content="​    多线程（英语：multithreading），是指从软件或者硬件上实现多个线程并发执行的技术。具有多线程能力的计算机因有硬件支持而能够在同一时间执行多于一个线程，进而提升整体处理性能。具有这种能力的系统包括对称多处理机、多核心处理器以及芯片级多处理（Chip-level multithreading）或同时多线程（Simultaneous multithreading）处理器。 在一个程">
+<meta property="og:updated_time" content="2016-10-19T06:01:02.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="多线程之GCD">
+<meta name="twitter:description" content="​    多线程（英语：multithreading），是指从软件或者硬件上实现多个线程并发执行的技术。具有多线程能力的计算机因有硬件支持而能够在同一时间执行多于一个线程，进而提升整体处理性能。具有这种能力的系统包括对称多处理机、多核心处理器以及芯片级多处理（Chip-level multithreading）或同时多线程（Simultaneous multithreading）处理器。 在一个程">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '6331555062636086000',
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://fench.cf/2016/10/17/多线程之GCD/"/>
+
+
+  <title> 多线程之GCD | Fench’s Blog </title>
+</head>
+
+<body itemscope itemtype="//schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="//schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Fench’s Blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">爱生活，爱编程</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                多线程之GCD
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-10-17T13:23:11+08:00" content="2016-10-17">
+              2016-10-17
+            </time>
+          </span>
+
+          
+
+          
+            
+          
+
+          
+
+          
+          
+             <span id="/2016/10/17/多线程之GCD/" class="leancloud_visitors" data-flag-title="多线程之GCD">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>​    多线程（英语：multithreading），是指从软件或者硬件上实现多个线程并发执行的技术。具有多线程能力的计算机因有硬件支持而能够在同一时间执行多于一个线程，进而提升整体处理性能。具有这种能力的系统包括对称多处理机、多核心处理器以及芯片级多处理（Chip-level multithreading）或同时多线程（Simultaneous multithreading）处理器。 在一个<a href="http://baike.baidu.com/view/17674.htm" target="_blank" rel="external">程序</a>中，这些独立运行的程序片段叫作“线程”（Thread），利用它编程的概念就叫作“多线程处理（Multithreading）”。具有多线程能力的计算机因有硬件支持而能够在同一时间执行多于一个线程，进而提升整体处理性能  <a id="more"></a></p>
+<p>说到多线程,不得不说说进程与线程</p>
+<ul>
+<li><p><code>进程</code>: 每一个在系统上运行的应用程序就是一个<code>进程</code></p>
+</li>
+<li><p><code>线程</code>: 每一个进程需要执行任务,必须要由一个<code>线程</code>(进程的所有任务都是在线程中进行的)<br>  线程中处理任务是顺序是<code>串行</code>的,即按顺序依次执行.</p>
+</li>
+<li><p><code>多线程</code>: 1个进程中可以开启多条进程,多条线程是<code>并行</code>处理不同任务.</p>
+<p>  ​     当我们程序中有一个任务需要执行时间很长时,如果只有一个线程,那么程序会一直执行这个任务,从而导致程序执行效率极低.这时我们就可以另外开辟一条线程,让这条线程执行下载任务,而主线程继续执行后面的任务,这样就可以大大提升程序执行效率.</p>
+<ul>
+<li>多线程原理: 同一时间,处理器只能处理一个线程,当程序中有多条线程同时(并发)执行时, 其实实质是CPU快速的在两个线程间切换.</li>
+<li>多线程优缺点:<ul>
+<li><code>优点</code>:<ul>
+<li>能适当提高程序执行效率</li>
+<li>能适当提高CPU的资源利用率</li>
+</ul>
+</li>
+<li><code>缺点</code>:<ul>
+<li>创建线程是有成本的– 空间成本和时间成本</li>
+<li>线程越多,CPU在线程间的切换越频繁,其开销就越大</li>
+<li>线程越多,程序越复杂(线程间通信,多线程间数据共享等)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>iOS中的多线程</p>
+<ul>
+<li><code>pthread</code>: 纯C语言函数库, 通用API,可跨平台,线程管理全部需要程序员管理</li>
+<li><code>NSThread</code>: OC 面向对象封装的类, 线程管理部分需要程序员管理,</li>
+<li><code>GCD</code>: 纯C语言函数库,充分利用设备的多核处理器, 线程由系统自动管理</li>
+<li><code>NSOperation</code>: 对GCD的OC面向对象封装,但是功能没有GCD大.</li>
+</ul>
+</li>
+</ul>
+<hr>
+<ul>
+<li><p>GCD:Grand Central Dispatch – 牛X的中枢调度器</p>
+<ul>
+<li>它是苹果为了支持多核处理器而推出的多线程封装.</li>
+<li>纯C语言函数</li>
+</ul>
+</li>
+<li><p>GCD的核心: </p>
+<ul>
+<li>任务: 线程需要执行什么操作</li>
+<li>队列: 用来存放任务</li>
+</ul>
+</li>
+<li><p>GCD的使用:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">苹果将GCD封装的非常强大,我们使用GCD开启多线程只需要两个步骤:</div></pre></td></tr></table></figure>
+<ul>
+<li>制定<code>任务</code>: 确定需要做的操作</li>
+<li>添加<code>任务</code>到<code>队列</code>中: GCD会自动取出<code>队列</code>中的<code>任务</code>,放到对应的线程中执行.</li>
+</ul>
+</li>
+<li><p>GCD执行任务:</p>
+<ul>
+<li>同步函数:dispatch_sync () –&gt;不具备开启线程的能力</li>
+<li>异步函数:dispatch_async()–&gt;具备开启线程的能力(不一定会开启)</li>
+<li>同步和异步主要影响：能不能开启新的线程  </li>
+</ul>
+</li>
+<li><p>队列的类型</p>
+<ul>
+<li><p>并发队列</p>
+<ul>
+<li>可以让多个任务并发（同时）执行</li>
+<li>自己创建:  </li>
+</ul>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">dispatch_queue_t</span> queue = dispatch_queue_create(<span class="string">"name"</span>, DISPATCH_QUEUE_CONCURRENT);</div></pre></td></tr></table></figure>
+<ul>
+<li>全局并发队列 : </li>
+</ul>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">dispatch_get_global_queue(<span class="number">0</span> , <span class="number">0</span>);串行队列</div></pre></td></tr></table></figure>
+</li>
+<li><p>串行队列</p>
+<ul>
+<li>让任务一个接着一个地执行</li>
+</ul>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 此处DISPATCH_QUEUE_SERIAL 可以至NULL 默认创建的就是串行队列</span></div><div class="line"><span class="built_in">dispatch_queue_t</span> queue = dispatch_queue_create(<span class="string">"name"</span>, DISPATCH_QUEUE_SERIAL);</div></pre></td></tr></table></figure>
+<ul>
+<li>并发和串行主要影响：任务的执行方式</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>GCD的各种组合</p>
+<ul>
+<li><code>异步</code>+  <code>并行</code> = <code>会开启新的线程</code></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>异步函数, 会先执行完所有的代码, 再在子线程中执行任务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">// 1. 创建一个全局队列</div><div class="line">dispatch_queue_t queue = dispatch_queue_create(&quot;name&quot;, DISPATCH_QUEUE_SERIAL);</div><div class="line">        </div><div class="line">        // 2.添加任务</div><div class="line">        dispatch_async(queue, ^&#123;</div><div class="line">            NSLog(@&quot;1 - %@&quot;, [NSThread currentThread]);</div><div class="line">        &#125;);</div><div class="line">        dispatch_async(queue, ^&#123;</div><div class="line">            NSLog(@&quot;2 - %@&quot;, [NSThread currentThread]);</div><div class="line">        &#125;);</div><div class="line">        dispatch_async(queue, ^&#123;</div><div class="line">            NSLog(@&quot;3 - %@&quot;, [NSThread currentThread]);</div><div class="line"></div><div class="line">        &#125;);</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>异步</code> + <code>串行</code> = <code>会创建新的线程, 但是只会创建一个新的线程, 所有的任务都在这一个新的线程中执行</code></p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">        <span class="built_in">dispatch_queue_t</span> queue = dispatch_queue_create(<span class="string">"name"</span>, DISPATCH_QUEUE_SERIAL);</div><div class="line"><span class="comment">// 2.添加任务</span></div><div class="line">        <span class="built_in">dispatch_async</span>(queue, ^&#123;</div><div class="line"></div><div class="line">            <span class="built_in">NSLog</span>(<span class="string">@"1 - %@"</span>, [<span class="built_in">NSThread</span> currentThread]);</div><div class="line"></div><div class="line">        &#125;);</div><div class="line"></div><div class="line">        <span class="built_in">dispatch_async</span>(queue, ^&#123;</div><div class="line"></div><div class="line">            <span class="built_in">NSLog</span>(<span class="string">@"2 - %@"</span>, [<span class="built_in">NSThread</span> currentThread]);</div><div class="line"></div><div class="line">        &#125;);</div><div class="line"></div><div class="line">        <span class="built_in">dispatch_async</span>(queue, ^&#123;</div><div class="line"></div><div class="line">            <span class="built_in">NSLog</span>(<span class="string">@"3 - %@"</span>, [<span class="built_in">NSThread</span> currentThread]);</div><div class="line"></div><div class="line">        &#125;);</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>同步</code> + <code>并行</code> = <code>不会开启新的线程</code></p>
+<ul>
+<li>其实就相当于同步 + 串行</li>
+<li>同步函数, 只要代码执行到了同步函数的那一行, 就会立即执行任务, 只有任务执行完毕才会继续往后执行</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">// 1.创建队列</div><div class="line">	dispatch_queue_t queue = dispatch_get_global_queue(0, 0);</div><div class="line"> // 2.添加任务</div><div class="line">    dispatch_sync(queue, ^&#123;</div><div class="line">        NSLog(@&quot;1 - %@&quot;, [NSThread currentThread]);</div><div class="line">    &#125;);</div><div class="line">    dispatch_sync(queue, ^&#123;</div><div class="line">        NSLog(@&quot;2 - %@&quot;, [NSThread currentThread]);</div><div class="line">    &#125;);</div><div class="line">    dispatch_sync(queue, ^&#123;</div><div class="line">        NSLog(@&quot;3 - %@&quot;, [NSThread currentThread]);</div><div class="line">    &#125;);</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">-   `同步` + `串行` = `不会创建新的线程`</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">```objc</div><div class="line">// 1.创建队列</div><div class="line">	dispatch_queue_t queue = dispatch_queue_create(&quot;name&quot;, DISPATCH_QUEUE_SERIAL);</div><div class="line">// 2.添加任务</div><div class="line">    dispatch_sync(queue, ^&#123;</div><div class="line">        NSLog(@&quot;1 - %@&quot;, [NSThread currentThread]);</div><div class="line">    &#125;);</div><div class="line">    dispatch_sync(queue, ^&#123;</div><div class="line">        NSLog(@&quot;2 - %@&quot;, [NSThread currentThread]);</div><div class="line">    &#125;);</div><div class="line">    dispatch_sync(queue, ^&#123;</div><div class="line">        NSLog(@&quot;3 - %@&quot;, [NSThread currentThread]);</div><div class="line">    &#125;);</div></pre></td></tr></table></figure>
+<ul>
+<li><p><code>异步</code> + <code>主队列</code> = <code>不会开启新的线程</code></p>
+</li>
+<li><p>只要是主队列, 永远都在主线程中执行</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 主队列, 只要将任务放到主队列中, 那么任务就会在主线程中执行</span></div><div class="line">    <span class="built_in">dispatch_queue_t</span> queue = dispatch_get_main_queue();</div><div class="line"><span class="comment">// 如果任务放在主队列中, 哪怕是异步方法也不会创建新的线程</span></div><div class="line">    <span class="built_in">dispatch_async</span>(queue, ^&#123;</div><div class="line">        <span class="built_in">NSLog</span>(<span class="string">@"1 - %@"</span>, [<span class="built_in">NSThread</span> currentThread]);</div><div class="line">    &#125;);</div><div class="line">    <span class="built_in">dispatch_async</span>(queue, ^&#123;</div><div class="line">        <span class="built_in">NSLog</span>(<span class="string">@"2 - %@"</span>, [<span class="built_in">NSThread</span> currentThread]);</div><div class="line">    &#125;);</div><div class="line">    <span class="built_in">dispatch_async</span>(queue, ^&#123;</div><div class="line">        <span class="built_in">NSLog</span>(<span class="string">@"3 - %@"</span>, [<span class="built_in">NSThread</span> currentThread]);</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>同步</code> + <code>主队列</code> =  <code>同步函数不能搭配主队列使用</code></p>
+<ul>
+<li><strong>注意</strong>: 有例外的情况, 如果同步函数是在异步函数中调用的, 那么没有任何问题<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">- GCD线程间通信</div><div class="line">  - 利用异步函数执行任务</div><div class="line">  - 利用主队列回到主线程更新UI</div><div class="line">- GCD中的常用方法</div><div class="line">- 延迟执行</div><div class="line"></div><div class="line">​```objc</div><div class="line">    [NSTimer scheduledTimerWithTimeInterval:2.0 target:self selector:@selector(run) userInfo:nil repeats:NO];</div><div class="line"></div><div class="line">// 内部实现原理就是NSTimer</div><div class="line">    [self performSelector:@selector(run) withObject:nil afterDelay:2.0];</div><div class="line"></div><div class="line">    // 将需要执行的代码, 和方法放在一起, 提高代码的阅读性</div><div class="line">    // 相比NSTimer来说, GCD的延迟执行更加准确</div><div class="line">    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^&#123;</div><div class="line">        NSLog(@&quot;%@&quot;, [NSThread currentThread]);</div><div class="line">        NSLog(@&quot;run&quot;);</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>一次性代码</p>
+<ul>
+<li>整个程序运行过程中, 只会执行一次</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 懒加载不能用一次性代码实现</span></div><div class="line"><span class="keyword">static</span> <span class="built_in">dispatch_once_t</span> onceToken;</div><div class="line">     <span class="built_in">dispatch_once</span>(&amp;onceToken, ^&#123;</div><div class="line">     <span class="built_in">NSLog</span>(<span class="string">@"我被执行了"</span>);</div><div class="line">     &#125;);</div></pre></td></tr></table></figure>
+<ul>
+<li>快速迭代</li>
+</ul>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/*</span></div><div class="line">     第一个参数: 需要执行几次任务</div><div class="line">     第二个参数: 队列</div><div class="line">     第三个参数: 当前被执行到得任务的索引</div><div class="line">     */</div><div class="line">    <span class="comment">/*</span></div><div class="line">     dispatch_apply(10, dispatch_get_global_queue(0, 0), ^(size_t index) &#123;</div><div class="line">     NSLog(@"%@, %zd",[NSThread currentThread] , index);</div><div class="line">     &#125;);</div><div class="line">     */</div></pre></td></tr></table></figure>
+<ul>
+<li>barrier<ul>
+<li>要想执行完前面所有的任务再执行barrier必须满足两个条件<ul>
+<li><ol>
+<li>所有任务都是在同一个队列中</li>
+</ol>
+</li>
+<li><ol>
+<li>队列不能是全局并行队列, 必须是自己创建的队列</li>
+</ol>
+</li>
+</ul>
+</li>
+<li>barrier方法之前添加的任务会先被执行, 只有等barrier方法之前添加的任务执行完毕, 才会执行barrier</li>
+<li>而且如果是在barrier方法之后添加的任务, 必须等barrier方法执行完毕之后才会开始执行</li>
+</ul>
+</li>
+<li>group<ul>
+<li>如果想实现, 等前面所有的任务都执行完毕, 再执行某一个特定的任务, 那么可以通过GCD中年的组来实现</li>
+<li>只要当前组中所有的任务都执行完毕了, 那么系统会自动调用dispatch_group_notify</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag">#iOS</a>
+          
+            <a href="/tags/移动开发/" rel="tag">#移动开发</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/10/17/一个严格的手机号码正则在iOS中的应用/" rel="next" title="一个严格的手机号正则匹配在iOS中的应用">
+                <i class="fa fa-chevron-left"></i> 一个严格的手机号正则匹配在iOS中的应用
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="//schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://aliimg.changba.com/cache/photo/57456833_640_640.jpg"
+               alt="Fench" />
+          <p class="site-author-name" itemprop="name">Fench</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">2</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <p class="post-toc-empty">此文章未包含目录</p>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Fench</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.2"></script>
+
+
+
+<<canvas id="c_n20" width="1366" height="1251" style="position: fixed; top: 0px; left: 0px; z-index: -1; opacity: 0.5;"></canvas>;
+    <!--<script src="/scripts/2bc/_gg_970_90.js" type="text/javascript"></script>-->
+    <script src='zepto.min.js'></script>
+    <script>
+        var canvas = $('canvas')[0];
+        var context = canvas.getContext('2d');
+
+        function Dot() {
+            this.alive = true;
+            this.x = Math.round(Math.random() * canvas.width);
+            this.y = Math.round(Math.random() * canvas.height);
+            this.diameter = Math.random() * 7;
+            this.colorIndex = Math.round(Math.random() * 3);
+            this.colorArray = ['rgba(255,153,0,', 'rgba(66,66,66,', 'rgba(188,188,188,', 'rgba(50,153,187,'];
+            this.alpha = 0.1;
+            this.color = this.colorArray[this.colorIndex] + this.alpha + ')';
+
+            this.velocity = { x: Math.round(Math.random() < 0.5 ? -1 : 1) * Math.random() * 0.7, y: Math.round(Math.random() < 0.5 ? -1 : 1) * Math.random() * 0.7 };
+        }
+
+        Dot.prototype = {
+            Draw: function () {
+                context.fillStyle = this.color;
+                context.beginPath();
+                context.arc(this.x, this.y, this.diameter, 0, Math.PI * 2, false);
+                context.fill();
+            },
+
+            Update: function () {
+                if (this.alpha < 0.8) {
+                    this.alpha += 0.01;
+                    this.color = this.colorArray[this.colorIndex] + this.alpha + ')';
+                }
+
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+
+                if (this.x > canvas.width + 5 || this.x < 0 - 5 || this.y > canvas.height + 5 || this.y < 0 - 5) {
+                    this.alive = false;
+                }
+            }
+        };
+
+        var EntityArray = [];
+
+        function Initialize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            for (var x = 0; x < 100; x++) {
+                EntityArray.push(new Dot());
+            }
+
+            Update();
+        }
+
+        function Update() {
+            if (EntityArray.length < 100) {
+                for (var x = EntityArray.length; x < 100; x++) {
+                    EntityArray.push(new Dot());
+                }
+            }
+
+            EntityArray.forEach(function (dot) {
+                dot.Update();
+            });
+
+            EntityArray = EntityArray.filter(function (dot) {
+                return dot.alive;
+            });
+
+            Draw();
+
+            requestAnimationFrame(Update);
+        }
+
+        function Draw() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            EntityArray.forEach(function (dot) {
+                dot.Draw();
+            });
+        }
+
+        $(window).resize(function () {
+            EntityArray = [];
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        Initialize(); //@ sourceURL=pen.js
+    </script>
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.2"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("Bjqni2l454a5ugjW6HpPn2s7-gzGzoHsz", "mCE99y9Ta3Vnmv9qfyv6BrmD");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+
+</body>
+</html>
